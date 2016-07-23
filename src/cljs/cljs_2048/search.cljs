@@ -2,7 +2,8 @@
   (:require [clojure.core.reducers :as reducers]
             [cljs.core.async :refer [chan close!]]
             [cljs-2048.utils :as utils]
-            [cljs-2048.logic :as logic])
+            [cljs-2048.logic :as logic]
+            [om.core :as om :include-macros true])
   (:require-macros
    [cljs.core.async.macros :as m :refer [go]]))
 
@@ -68,14 +69,14 @@
                                                          grid-up grid-down))
         res (map (fn [mv] (-> mv
                               weighted-average
-                              ;time
+                                        ;time
                               ))
                  valid-moves)]
-    (if (= search-depth curr-depth) 
-      res
-      (if (empty? valid-moves) 
-        '()
-        (reduce into (map (fn [grid] (score-branch grid (inc curr-depth) search-depth)) valid-moves))))))
+    (cond (= search-depth curr-depth) res 
+          (= search-depth 1) (weighted-average grid)
+          :else (if (empty? valid-moves) 
+                  '()
+                  (reduce into (map (fn [grid] (score-branch grid (inc curr-depth) search-depth)) valid-moves))))))
 
 ;; alternate between CHANCE and MAX nodes
 ;; option 1 - takes a grid and builds a list of all possible grids then score all of them
@@ -87,20 +88,20 @@
         up (logic/move-up init-grid)
         down (logic/move-down init-grid) 
         grid-left (if left (apply max (flatten (map (fn [grid] (score-branch grid 1 search-depth)) 
-                                                    (generate-states left)))) -999)
+                                                    (generate-states left)))) -1)
         grid-right (if right (apply max (flatten (map (fn [grid] (score-branch grid 1 search-depth)) 
-                                                      (generate-states right)))) -999)
+                                                      (generate-states right)))) -1)
         grid-up (if up (apply max (flatten (map (fn [grid] (score-branch grid 1 search-depth)) 
-                                                (generate-states up)))) -999)
+                                                (generate-states up)))) -1)
         grid-down (if down (apply max (flatten (map (fn [grid] (score-branch grid 1 search-depth)) 
-                                                    (generate-states down)))) -999)
+                                                    (generate-states down)))) -1)
         res {:left grid-left
              :right grid-right
              :up grid-up
              :down grid-down}]
     (println res)
     (key (apply max-key val res)))) 
- 
+
 (defn timeout [ms] 
   (let [c (chan)]
     (js/setTimeout (fn [] (close! c)) ms)
@@ -110,12 +111,16 @@
   ;; (let [res (tree-search (get @app :grid-values) 2)]
   ;;   (println res) 
   ;;   (logic/move app res))
-  (go (while (not (get @app :game-over)) 
+  (om/update! app [:game-running] true)
+  (go (while (and (get @app :game-running)
+                  (not (get @app :game-over))) 
         (let [res (-> (get @app :grid-values)
                       (tree-search 4)
-                      (time)
-                      )]
+                      (time))]
           (println res)
           (<! (timeout 5))
           (logic/move app res)))))
+ 
+(defn stop-ai [app]
+  (om/update! app [:game-running] false))
  

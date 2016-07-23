@@ -12,7 +12,7 @@
   "10% chance of 4 tile, 90% chance of 2 tile"
   (if (zero? (rand-int 10)) 4 2))
 
-(defn merge-row [row]
+(defn unmemoized-merge-row [row]
   "applies 2048 rules of merging from right to left"
   (let [non-zeroes (remove zero? row)
         merged (loop [lst non-zeroes
@@ -24,6 +24,8 @@
         num-zeroes-removed (- 4 (count merged))]
     (into merged (vec (repeat num-zeroes-removed 0)))))
 
+(def merge-row (memoize unmemoized-merge-row))
+
 (defn rotate-grid [grid]
   "rotate a grid 90 degrees clockwise"
   (when grid
@@ -31,13 +33,13 @@
           col2 (reverse (utils/subset grid '(1 5 9 13)))
           col3 (reverse (utils/subset grid '(2 6 10 14)))
           col4 (reverse (utils/subset grid '(3 7 11 15)))]
-                                        ;just a fancy way of concatenating columns together
+      ;; just a fancy way of concatenating columns together
       (reducers/fold (fn ([xs x] (into xs x)) ([] []))
                      (list col1 col2 col3 col4)))))
 
 ;; for other directions, rotate then apply move-left and rotate back
 ;; if not a valid, return false
-(defn move-left [grid] 
+(defn unmemoized-move-left [grid] 
   (let [row1 (subvec grid 0 4)
         row2 (subvec grid 4 8)
         row3 (subvec grid 8 12)
@@ -48,6 +50,8 @@
     (if (= grid res)
       false
       res)))
+
+(def move-left (memoize unmemoized-move-left)) 
 
 (defn move-down [grid]
   (-> grid

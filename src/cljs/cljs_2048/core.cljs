@@ -18,7 +18,8 @@
                                         0 0 0 0
                                         0 0 0 0
                                         0 0 0 0]
-                          :game-over false}))
+                          :game-over false
+                          :game-running false}))
 
 (defn pos-to-index [cell pos-str]
   "given a position (i.e. 1-1, 3-4), return the corresponding index. 1-1 is 0 and 4-4 is 16"
@@ -108,6 +109,8 @@
                       (dom/strong nil "2048 tile!")) 
                (dom/a #js {:className "restart-button"
                            :onClick #(search/run-ai app)} "Run AI") 
+               (dom/a #js {:className "restart-button"
+                           :onClick #(search/stop-ai app)} "Stop AI") 
                (dom/a #js {:className "restart-button"
                            :onClick #(logic/restart-game app)} "New Game")))))
 
