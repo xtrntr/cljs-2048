@@ -14,19 +14,22 @@
 (defn sumlist [list]
   (reduce + list))
 
-(defn unmemoized-monotonicity [grid]
-  "state is vector of 16 values
-   zip multiply the vector with a geometric sequence"
-  (let [configs (list grid
-                      (reverse grid)
-                      (logic/rotate-grid grid)
-                      (reverse (logic/rotate-grid grid)))]
-    (apply max 
-           (map 
-            (fn [grid] (sumlist (map * geom-seq grid)))
-            configs))))
+(def counter 0)
 
-(def monotonicity (memoize unmemoized-monotonicity))
+(def monotonicity 
+  "state is vector of 16 values
+  zip multiply the vector with a geometric sequence"
+  (memoize 
+   (fn [grid] 
+     (let [configs (list grid
+                         (reverse grid)
+                         (logic/rotate-grid grid)s
+                         (reverse (logic/rotate-grid grid)))]
+       (set! counter (inc counter))
+       (apply max 
+              (map 
+               (fn [grid] (sumlist (map * geom-seq grid)))
+               configs))))))
 
 (defn weight-zero-tiles [grid]
   "bonus for more empty tiles"
@@ -86,7 +89,7 @@
   (let [left (logic/move-left init-grid)
         right (logic/move-right init-grid)
         up (logic/move-up init-grid)
-        down (logic/move-down init-grid) 
+        down (logic/move-down init-grid)
         grid-left (if left (apply max (flatten (map (fn [grid] (score-branch grid 1 search-depth)) 
                                                     (generate-states left)))) -1)
         grid-right (if right (apply max (flatten (map (fn [grid] (score-branch grid 1 search-depth)) 
@@ -99,8 +102,7 @@
              :right grid-right
              :up grid-up
              :down grid-down}]
-    (println res)
-    (key (apply max-key val res)))) 
+    (key (apply max-key val res))))
 
 (defn timeout [ms] 
   (let [c (chan)]
@@ -108,8 +110,10 @@
     c))
 
 (defn run-ai [app]
-  ;; (let [res (tree-search (get @app :grid-values) 2)]
-  ;;   (println res) 
+  ;; (let [res (time (tree-search (get @app :grid-values) 6))]
+  ;;   (println res)
+  ;;   (println counter)
+  ;;   (set! counter 0)
   ;;   (logic/move app res))
   (om/update! app [:game-running] true)
   (go (while (and (get @app :game-running)
@@ -120,7 +124,7 @@
           (println res)
           (<! (timeout 5))
           (logic/move app res)))))
- 
+
 (defn stop-ai [app]
   (om/update! app [:game-running] false))
  

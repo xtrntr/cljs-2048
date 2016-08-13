@@ -46,13 +46,13 @@
 
                 :compiler {:main cljs-2048.core
                            :asset-path "js/compiled/out"
-                           :output-to "resources/public/js/compiled/cljs_2048.js"
+                           :output-to "resources/public/js/compiled/cljs_2048_figwheel.js"
                            :output-dir "resources/public/js/compiled/out"
                            :source-map-timestamp true}}
 
                {:id "test"
                 :source-paths ["src/cljs" "test/cljs" "src/cljc" "test/cljc"]
-                :compiler {:output-to "resources/public/js/compiled/testable.js"
+                :compiler {:output-to "resources/public/js/compiled/cljs_2048_test.js"
                            :main cljs-2048.test-runner
                            :optimizations :none}}
 
@@ -60,7 +60,7 @@
                 :source-paths ["src/cljs" "src/cljc"]
                 :jar true
                 :compiler {:main cljs-2048.core
-                           :output-to "resources/public/js/compiled/cljs_2048.js"
+                           :output-to "resources/public/js/compiled/cljs_2048_min.js"
                            :output-dir "target"
                            :source-map-timestamp true
                            :optimizations :advanced

@@ -73,6 +73,9 @@
 
 (defn board [app owner]
   (reify
+    om/IDidMount
+    (did-mount [_]
+      (logic/restart-game app))
     om/IRenderState
     (render-state [_ _]
       (let [game-over? (get @app :game-over)]
@@ -106,13 +109,19 @@
       (dom/div #js {:className "above-game"}
                (dom/p #js {:className "game-intro"} 
                       "Join the numbers and get to the "
-                      (dom/strong nil "2048 tile!")) 
-               (dom/a #js {:className "restart-button"
-                           :onClick #(search/run-ai app)} "Run AI") 
-               (dom/a #js {:className "restart-button"
-                           :onClick #(search/stop-ai app)} "Stop AI") 
+                      (dom/strong nil "2048 tile!"))
                (dom/a #js {:className "restart-button"
                            :onClick #(logic/restart-game app)} "New Game")))))
+
+(defn ai-container [app owner]
+  (reify
+    om/IRender 
+    (render [this]
+      (dom/div #js {:className "above-game"}
+               (dom/a #js {:className "restart-button"
+                           :onClick #(search/run-ai app)} "Run AI")
+               (dom/a #js {:className "restart-button"
+                           :onClick #(search/stop-ai app)} "Stop AI")))))
 
 (defn screen [app owner]
   (om/component 
@@ -120,6 +129,7 @@
             (om/build global/key-listener app)
             (om/build heading app)
             (om/build above-game app)
+            (om/build ai-container app)
             (om/build board app))))
 
 (om/root 

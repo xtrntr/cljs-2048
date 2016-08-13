@@ -27,15 +27,13 @@
 (def merge-row (memoize unmemoized-merge-row))
 
 (defn rotate-grid [grid]
-  "rotate a grid 90 degrees clockwise"
+  "rotate a grid 90 degrees clockwise" 
   (when grid
-    (let [col1 (reverse (utils/subset grid '(0 4 8 12)))
-          col2 (reverse (utils/subset grid '(1 5 9 13)))
-          col3 (reverse (utils/subset grid '(2 6 10 14)))
-          col4 (reverse (utils/subset grid '(3 7 11 15)))]
-      ;; just a fancy way of concatenating columns together
-      (reducers/fold (fn ([xs x] (into xs x)) ([] []))
-                     (list col1 col2 col3 col4)))))
+    (into [] (for [idx (list 12 8 4 0 
+                             13 9 5 1 
+                             14 10 6 2 
+                             15 11 7 3)]
+               (nth grid idx)))))
 
 ;; for other directions, rotate then apply move-left and rotate back
 ;; if not a valid, return false
@@ -82,22 +80,23 @@
 
 (defn game-over? [grid]
   "return f on a full non-zero grid with no possible mergeable row/columns"
-  (let [col1 (utils/subset grid '(0 4 8 12))
-        col2 (utils/subset grid '(1 5 9 13))
-        col3 (utils/subset grid '(2 6 10 14))
-        col4 (utils/subset grid '(3 7 11 15))
-        row1 (subvec grid 0 4)
-        row2 (subvec grid 4 8)
-        row3 (subvec grid 8 12)
-        row4 (subvec grid 12 16)]
-    (every? (fn [lst]
-              (loop [lst lst]
-                (cond 
-                 (empty? lst) true
-                 (zero? (first lst)) false
-                 (= (first lst) (second lst)) false
-                 :else (recur (rest lst)))))
-            (list col1 col2 col3 col4 row1 row2 row3 row4))))
+  ;; (let [col1 (utils/subset grid '(0 4 8 12))
+  ;;       col2 (utils/subset grid '(1 5 9 13))
+  ;;       col3 (utils/subset grid '(2 6 10 14))
+  ;;       col4 (utils/subset grid '(3 7 11 15))
+  ;;       row1 (subvec grid 0 4)
+  ;;       row2 (subvec grid 4 8)
+  ;;       row3 (subvec grid 8 12)
+  ;;       row4 (subvec grid 12 16)]
+  ;;   (every? (fn [lst]
+  ;;             (loop [lst lst]
+  ;;               (cond 
+  ;;                (empty? lst) true
+  ;;                (zero? (first lst)) false
+  ;;                (= (first lst) (second lst)) false
+  ;;                :else (recur (rest lst)))))
+  ;;           (list col1 col2 col3 col4 row1 row2 row3 row4)))
+  false)
 
 (defn clear-grid [app]
   (om/update! app [:grid-values] [0 0 0 0
